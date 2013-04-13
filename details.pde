@@ -1,8 +1,7 @@
 
 
-
 //more details may be addes later, homogeneity index, cycles, if it gets a red line?, etc.
-class nodeDetails{
+class details{
 //reaction classification proportions
   float EC_transport;
   float carbMetab;
