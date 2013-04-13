@@ -11,6 +11,7 @@ class Tree {
 
 //traverses the tree to add details to each node
 //called after tree parent chilren nodes have been laid out and leaf nodes have information
+
   public initializeNodesDetails(MyNode node){
     moduleReport(moduleReport, node);  //so far only sets module report
 
@@ -24,7 +25,7 @@ class Tree {
   }
 
   //gets composition called by intialization details
- // public moduleComposition(MyParser composition, MyNode node){
+  //public moduleComposition(MyParser composition, MyNode node){
   //}
   
   //traverse module report, places number of reactions into given node 
