@@ -34,7 +34,7 @@ class Tree {
     for(int i = 0; i < moduleReport.numItems; i++){
       if(id.equals(moduleReport.getValues(i, 0))){
         int num = int(moduleReport.getValues(i, 0);
-        node.details.numReactions = num///size in module report
+        node.details.numReactions = num;///size in module report
         break; 
       }
     }
