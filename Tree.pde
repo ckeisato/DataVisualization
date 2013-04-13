@@ -30,10 +30,11 @@ class Tree {
   
   //traverse module report, places number of reactions into given node 
   public moduleReport(MyParser moduleReport, myNode node){
-    int id = node.id;
+    string id = node.id;
     for(int i = 0; i < moduleReport.numItems; i++){
-      if(id == moduleReport.getValues(i, 0)){
-        node.details.numReactions = moduleReport(i, 1); ///size in module report
+      if(id.equals(moduleReport.getValues(i, 0))){
+        int num = int(moduleReport.getValues(i, 0);
+        node.details.numReactions = num///size in module report
         break; 
       }
     }
