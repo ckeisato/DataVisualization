@@ -1,0 +1,371 @@
+
+
+///have some way to indicate that it is collapse/expanded
+
+//comparison box?   you can have like 3....
+
+//way to filter
+
+class MyController {
+  Network network;
+  boolean stateTree;
+
+  float filterProportion = 30.00;
+
+  boolean comparingModules;
+  boolean showingBox;       //state of showing the control box
+
+    boolean stateNetwork;
+
+  MyTextInput textInput;
+
+  MyNode treeroot;
+  MyNode hover;
+  MyNode selectedNode;
+  MyNode compare;
+
+  boolean buttons;
+
+  float boxX;
+  float boxY;
+  float boxWidth;
+  float boxHeight;
+
+  float buttonx;
+  float collapseY;
+  float expandY;
+  float centerY;
+  float filterY;
+  float compareY;
+
+  float buttonHeight;
+  float buttonWidth;
+
+  ArrayList labels;
+  float textBoxWidth;
+
+  int highlightCount = 0;
+  ArrayList compareNodes;  
+  color highlighter[];
+
+
+  //  color normalButton = color(100);
+  //  color hoverButton = color(
+
+  public MyController(ArrayList initTreeLabels, float textBox, MyNode _root, Network n) {
+    network = n;
+    this.labels = initTreeLabels;
+    this.buttons = false;
+    this.showingBox = false;
+    this.textBoxWidth = textBox + 5;
+    this.treeroot = _root;
+
+
+    this.compareNodes = new ArrayList(5);
+
+    this.boxX = 20;
+    this.boxY = 20;
+    this.boxWidth = 200;
+    this.boxHeight = 250;
+
+    this.buttonHeight = 30;
+    this.buttonWidth = this.boxWidth - 20;
+
+    this.buttonx = this.boxX + 10;
+    this.collapseY = this.boxY + 10;
+    this.expandY = this.boxY + 20 + this.buttonHeight;
+    this.centerY = this.boxY + 30 + 2*this.buttonHeight;
+    this.filterY = this.boxY + 40 + 3*this.buttonHeight;
+    this.compareY = this.boxY + 50 + 4*this.buttonHeight;
+
+    textInput = new MyTextInput ((int)buttonx, (int)filterY, (int)buttonWidth, (int)buttonHeight, "", 0, this);
+
+
+    this.highlighter = new color[5];
+    this.highlighter[0] = color(173, 255, 47);
+    this.highlighter[1] = color(255, 255, 0);
+    this.highlighter[2] = color(0, 238, 0);
+    this.highlighter[3] = color(0, 255, 255);
+    this.highlighter[4] = color(255, 0, 255);
+  }
+
+  ///normal render functin that is called in draw, checks for normal show info interaction and renders the box yes no?
+  void render(MyNode start) {
+    if (this.comparingModules) {
+      fill(0);
+    }
+    else {
+      fill(100, 255, 200);
+    }
+    //rect(300, 300, 100, 100);
+
+
+    //state 1 -- if the info box has been called, renders the info box  and box isect to check for button interaction. 
+    this.showInfo(start);
+    if (this.showingBox) {
+      this.renderBox();
+    }
+
+    //state 2 -- if comparing modules, calls compare modules and continuously adds things to highlight array 
+    if (this.comparingModules) {
+      this.compare();
+      this.showCompare();
+    }
+  }
+
+
+  void clearCompareNodes() {
+    int total = this.compareNodes.size();
+    for (int i = 0; i < total; i++) {
+      this.compareNodes.remove(0);
+    }
+  }
+
+  ///called when mouse is clicked
+  void click(Tree mytree) {
+    textInput.mouseClicked();
+    this.hover = highlight(mytree.root);
+    //
+    if (this.hover != null) {  //the mouse is hovering over a 
+      if (this.selectedNode != null) {
+        this.selectedNode.selected = false;
+      }
+      this.selectedNode = this.hover;
+      this.selectedNode.selected = true;
+    }
+
+
+    //open box
+    if (this.hover != null && this.showingBox == false) {
+      this.showingBox = true;
+    }
+    //close box
+    else if (this.hover == null && this.showingBox == true && this.boxIsect() == false) {
+      textInput.rendered = false;
+      this.showingBox = false;
+      this.selectedNode.selected = false;
+      this.comparingModules = false;
+      clearFilter(treeroot);
+      this.clearCompareNodes();
+    }
+    else if (this.hover != null && this.comparingModules) {
+      this.compareNodes.add(this.selectedNode);
+    }
+
+    ///if info box is up, calls button interactions. 
+    if (this.showingBox) {
+      this.buttonIsect(mytree);
+    }
+  }
+
+
+  boolean boxIsect() {
+    float xDist = mouseX - this.boxX; 
+    float yDist = mouseY - this.boxY;
+    if ((xDist < this.boxWidth) && (yDist < this.boxHeight) && (xDist > 0) && (yDist > 0)) {
+      return true;
+    }
+    return false;
+  }
+
+
+
+  ///checks intersection, returns a node if a mouse is intersecting with a node, return nothing if nothing is selected. 
+  MyNode highlight(MyNode start) {
+    if (start.circle.isBounded()) {
+      return start;
+    }
+    if (!start.leaf) {
+      for (int i = 0; i < start.children.size(); i++) {
+        if (highlight((MyNode)start.children.get(i)) != null) {
+          return highlight((MyNode) start.children.get(i));
+        }
+      }
+    }
+    return null;
+  }
+
+
+
+
+
+
+  void renderBox() {
+    fill(150, 150, 150, 220);
+    noStroke();
+    rect(this.boxX, this.boxY, this.boxWidth, this.boxHeight, 8);  //main control square
+
+    fill(100);
+    rect(this.buttonx, this.collapseY, this.buttonWidth, this.buttonHeight, 8);
+    rect(this.buttonx, this.expandY, this.buttonWidth, this.buttonHeight, 8);
+    rect(this.buttonx, this.centerY, this.buttonWidth, this.buttonHeight, 8);
+    rect(this.buttonx, this.compareY, this.buttonWidth, this.buttonHeight, 8);
+    if (!textInput.rendered)
+      rect(this.buttonx, this.filterY, this.buttonWidth, this.buttonHeight, 8);
+
+
+
+
+
+
+
+    fill(255);
+    textSize(15);
+    textAlign(CENTER);
+    text("COLLAPSE", .5*(this.boxWidth + this.boxX), this.boxY + this.buttonHeight);
+    text("EXPAND", .5*(this.boxWidth + this.boxX), this.boxY + 2*this.buttonHeight + 10);
+    text("CENTER", .5*(this.boxWidth + this.boxX), this.boxY + 3*this.buttonHeight + 20);
+    if (!textInput.rendered)
+      text("FILTER", .5*(this.boxWidth + this.boxX), this.boxY + 4*this.buttonHeight + 30);
+    text("COMPARE", .5*(this.boxWidth + this.boxX), this.boxY + 5*this.buttonHeight + 40);
+
+
+    text("CLICK OFF TO CLOSE BOX", .5*(this.boxWidth + this.boxX + 10), this.boxY + 7*this.buttonHeight);
+    text("SELECTED NODE: " + this.selectedNode.id, .5*(this.boxWidth + this.boxX + 10), this.boxY + 8*this.buttonHeight);
+    if (textInput.rendered) textInput.render();
+  }
+
+  void buttonIsect(Tree tree) {
+    if (buttonIsect(this.collapseY)) {
+      if (this.selectedNode != mytree.current && this.comparingModules == false) {
+        this.selectedNode.collapse = true;
+      }
+    }
+    if (buttonIsect(this.expandY) && (this.selectedNode.collapse) && this.comparingModules == false) {
+      this.selectedNode.collapse = false;
+      return;
+    }
+    if (buttonIsect(this.centerY) && this.comparingModules == false) {
+      network.nodeID = selectedNode.id;
+      selectedNode.collapse = false;
+      tree.setCenter(this.selectedNode);
+    }
+    if (buttonIsect(this.compareY)) {
+      this.comparingModules = true;
+      this.compareNodes.add(this.selectedNode);
+    }
+
+    if (buttonIsect(this.filterY)) {
+      textInput.rendered = true;
+    }
+  }
+
+
+  void compare() {
+    if (this.compareNodes.size() == 6) {     
+      this.comparingModules = false;
+      this.clearCompareNodes();
+      return;
+    }
+    this.selectedNode.compare = true;
+  }
+
+
+  void showCompare() {
+    float cumulX = this.boxX + this.boxWidth;
+    MyNode node;
+    for (int i = 0; i < this.compareNodes.size(); i++) {
+      float tempY = this.boxY;
+      node = (MyNode) this.compareNodes.get(i);
+      stroke(this.highlighter[i]);
+      strokeWeight(3);
+      node.details.renderInfoBox(cumulX, this.boxY);
+      cumulX = cumulX + 220;
+    }
+  }
+
+
+  boolean buttonIsect(float _y) {
+    float xDist = mouseX - this.buttonx; 
+    float yDist = mouseY - _y;
+    if ((xDist < this.buttonWidth) && (yDist < this.buttonHeight) && (xDist > 0) && (yDist > 0)) {
+      return true;
+    }
+    return false;
+  }
+
+
+
+  void showInfo(MyNode start) {
+    MyNode hover = highlight(start);
+    if (hover == null) {
+      return;
+    }
+    //node with just one reaction type;
+    float _x = mouseX + 5;
+    float _y;
+    float _height;
+    if (hover.details.oneType) {
+      _y = mouseY - 60;
+      if (mouseX > (width - hover.details.textBoxWidth)) {
+        _x = mouseX - hover.details.textBoxWidth - 5;
+      }
+      if (mouseY < (height - 60)) {
+        _y = mouseY - 60;
+      }
+      noStroke();
+      hover.details.renderInfoBox(_x, _y);
+    }
+    //node with more than one reaction type 
+    else {
+      float infoHeight = hover.details.proportions.length * 25 + 30;
+      _x = mouseX + 5;
+      _y = mouseY - infoHeight;
+      if (mouseX > (width - this.textBoxWidth)) {
+        _x = mouseX - this.textBoxWidth - 5;
+      }
+      if (mouseY < (height - infoHeight)) {
+        _y = mouseY - infoHeight;
+      }       
+      noStroke();
+      hover.details.renderInfoBox(_x, _y);
+    }
+  }
+
+
+
+
+
+
+  ////FILTERING ???????????????????? ADDED 6:15
+
+  void clearFilter(MyNode node) {
+    if (node.leaf) {
+      node.filterOut = false;
+      return;
+    }
+    node.filterOut = false;
+    for (int i = 0; i < node.children.size(); i++) {
+      clearFilter((MyNode) node.children.get(i));
+    }
+  }
+
+  void filterNodes(MyNode start, String reaction) {
+    int index = this.labels.size() + 1;
+    for (int i = 0; i < this.labels.size(); i++) {
+      if (reaction.equals((String) this.labels.get(i))) {
+        index = i;
+      }
+    }
+    if (index == this.labels.size() + 1) {
+      return;
+    }
+
+    filterHelp(start, index);
+  }
+
+
+
+
+  void filterHelp(MyNode node, int index) {
+    if (node.details.proportions[index] < this.filterProportion) {
+      node.filterOut = true;
+    }
+    if (node.leaf) {
+      return;
+    }
+    for (int i = 0; i < node.children.size(); i++) {
+      filterHelp((MyNode) node.children.get(i), index);
+    }
+  }
+}

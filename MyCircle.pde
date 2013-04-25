@@ -2,16 +2,20 @@
 class MyCircle {
   int x, y, radius;
   int r, g, b, value;
+  int defaultRed, defaultGreen, defaultBlue;
   String label;
+  boolean isFaded;
   
   public MyCircle(int _x, int _y, int _radius, String _label, int _value) {
-      setPosition (_x, _y, _radius);
+      setPosition (_x, _y);
+      radius = _radius;
       setColor (250, 250, 250);
       setLabel (_label);
       value = _value;
       r = 255;
       g = 255;
       b = 255;
+      isFaded = false;
   }
   
   public int getX() {
@@ -22,16 +26,37 @@ class MyCircle {
     return y;
   }
   
-  public void setPosition (int _x, int _y, int _radius) {
+  public void setPosition (int _x, int _y) {
       x = _x;
       y = _y;
-      radius = _radius;
+  }
+
+  public void setDefaultColor (int _r, int _g, int _b) {
+      defaultRed = _r;
+      defaultGreen = _g; 
+      defaultBlue = _b;
+      setColor(_r, _g, _b);
   }
   
   public void setColor (int _r, int _g, int _b) {
       r = _r;
       g = _g; 
       b = _b;
+  }
+  
+  public void setColorV (int _r, int _g, int _b, int _v) {
+      r = _r;
+      g = _g; 
+      b = _b;
+      value = _v;
+  }
+  
+  public void fadeOut(){
+    isFaded = true;
+  }
+  
+  public void fadeIn(){
+    isFaded = false;
   }
  
   public void setLabel (String _label) {
@@ -56,8 +81,9 @@ class MyCircle {
   }
   
   public void render() {
-    fill(r, g, b);
-    ellipse(x, y, radius*2, radius*2);  
+    fill(r, g, b, value);
+    ellipse(x, y, radius*2, radius*2);
     fill(0);
-  } 
+    strokeWeight(1);
+  }
 }
